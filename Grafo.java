@@ -130,12 +130,12 @@ public class Grafo {
                 linha = linha.replaceAll("\\s + ", " ");
                 pedacos = linha.split(" ");
                 int v1 = Integer.parseInt(pedacos[0]);
-                if (this.verticeMap.get(v1) == null) // evitar aviso desnecessario de vertice ja existente
+                if (this.verticeMap.get(v1) == null) // evitar aviso desnecessário de vértice ja existente
                     this.adicionarVertice(v1);
                 for (int i = 2 ; i < pedacos.length ; i++) {
                     int v2 = Integer.parseInt(pedacos[i]);
                     // pode ser a primeira ocorrência do v2
-                    if (this.verticeMap.get(v2) == null) // evitar aviso desnecessario de vertice ja existente
+                    if (this.verticeMap.get(v2) == null) // evitar aviso desnecesáario de vértice ja existente
                         this.adicionarVertice(v2);
                     this.adicionarAresta(v1, v2);
                 }
@@ -145,22 +145,6 @@ public class Grafo {
         catch(Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public int fatorial(int n) {
-        if (n >= 0) {
-            int fat = 1;
-            while (n >= 1) {
-                fat *= n;
-                n -= 1;
-            }
-            return fat;
-        }
-        return -1;
-    }
-
-    public int combinacaoSimples(int n, int k) {
-        return fatorial(n) / (fatorial(k) * fatorial(n - k));
     }
 
     /**
