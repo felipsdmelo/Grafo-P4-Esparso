@@ -18,8 +18,7 @@ public class Grafo {
             Vertice vertice = new Vertice(id);
             this.verticeMap.put(vertice.getId(), vertice);
             this.indicesDeVertices.add(id);
-        }
-        else {
+        } else {
             System.out.println("Não foi possível adicionar o vértice " + id);
         }
     }
@@ -121,25 +120,25 @@ public class Grafo {
      * Dados dois inteiros origem e destino, calcula a quantidade
      * de vértices entre eles
      *
-     * @param origem: ID do vértice de origem
+     * @param origem:  ID do vértice de origem
      * @param destino: ID do vértice de destino
      * @return: quantidade de vértices de origem para destino (inclusive)
      */
     public int BFS(int origem, int destino) {
         reset();
         Vertice v1 = this.verticeMap.get(origem);
+        Vertice v2 = this.verticeMap.get(destino);
         List<Integer> caminho = new ArrayList<>();
         caminho.add(origem);
         v1.setVisitadoTrue();
         Queue<List<Integer>> fila = new LinkedList<>();
-        fila.offer(caminho);
+        fila.add(caminho);
 
         while (!fila.isEmpty()) {
             caminho = fila.poll();
             int ultimo = caminho.get(caminho.size() - 1);
-            if (ultimo == destino) {
+            if (ultimo == destino)
                 return caminho.size();
-            }
 
             Vertice ultimoVertice = this.verticeMap.get(ultimo);
             for (Vertice v : ultimoVertice.getVizinhanca().values()) {
@@ -151,10 +150,10 @@ public class Grafo {
                 }
             }
         }
-        return caminho.size();
+        return 1;
     }
 
-    public void abrirTexto(String arquivo) {
+    public void abrirArquivo(String arquivo) {
         String linha = null;
         String pedacos[];
 
@@ -170,7 +169,7 @@ public class Grafo {
                 if (this.verticeMap.get(v1) == null) // evitar aviso desnecessário de vértice já existente
                     adicionarVertice(v1);
 
-                for (int i = 2 ; i < pedacos.length ; i++) {
+                for (int i = 2; i < pedacos.length; i++) {
                     int v2 = Integer.parseInt(pedacos[i]);
                     // pode ser a primeira ocorrência de v2
                     if (this.verticeMap.get(v2) == null)
@@ -178,8 +177,7 @@ public class Grafo {
                     adicionarAresta(v1, v2);
                 }
             }
-        }
-        catch(Exception exception) {
+        } catch (Exception exception) {
             exception.printStackTrace();
         }
     }
@@ -189,7 +187,7 @@ public class Grafo {
      * subgrafos de tamanho 5 de g
      * Complexidade: O(n^5)
      *
-     * @return: lista com todos os subgrafos de tamanho 5 de g
+     * @return lista com todos os subgrafos de tamanho 5 de g
      */
     public List<Grafo> gerarSubgrafos() {
         List<Grafo> subgrafos = new ArrayList<>();
@@ -245,7 +243,7 @@ public class Grafo {
      * Um grafo é P4-Esparso se para todos os subgrafos de 5 vértices existe
      * no máximo um P4 induzido
      *
-     * @return: true caso seja P4-Esparso ou false caso contrário
+     * @return true caso seja P4-Esparso ou false caso contrário
      */
     public boolean isP4Esparso() {
         if (this.verticeMap.size() <= 4) // qualquer grafo com 4 ou menos vértices é P4-Esparso
@@ -257,13 +255,17 @@ public class Grafo {
                 int controle = 0;
                 for (Vertice v2 : g.verticeMap.values()) {
                     if (v1.getId() < v2.getId()) { // evita repetição {v1, v2} e {v2, v1}
-                        if (BFS(v1.getId(), v2.getId()) >= 4)
+                        if (g.BFS(v1.getId(), v2.getId()) >= 4)
                             controle += 1;
-                        if (controle > 1)
+                        if (controle > 1) {
+                            System.out.print("O grafo possui mais de um P4, induzido pelo conjunto de vértices: ");
+                            System.out.println(g.verticeMap.keySet());
                             return false;
+                        }
                     }
                 }
             }
         }
         return true;
     }
+}
