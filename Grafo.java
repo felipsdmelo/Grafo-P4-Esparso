@@ -248,7 +248,7 @@ public class Grafo {
      * @return: true caso seja P4-Esparso ou false caso contrário
      */
     public boolean isP4Esparso() {
-        if (this.verticeMap.size() <= 4) // qualquer grafo com menos de 4 vértices é P4-Esparso
+        if (this.verticeMap.size() <= 4) // qualquer grafo com 4 ou menos vértices é P4-Esparso
             return true;
 
         List<Grafo> subgrafos = gerarSubgrafos();
