@@ -1,4 +1,3 @@
-import javax.swing.plaf.synth.SynthOptionPaneUI;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.*;
@@ -40,11 +39,11 @@ public class Grafo {
         if (v1 == null || v2 == null) {
             System.out.println("Não foi possível criar a aresta entre os vértices " + id_1 + " e " + id_2);
             return;
-        }
+        } /*
         if (v1.possuiVizinho(v2)) {
             System.out.println("Os vértices " + id_1 + " e " + id_2 + " já são vizinhos");
             return;
-        }
+        } */
         v1.adicionarVizinho(v2);
         v2.adicionarVizinho(v1);
     }
@@ -100,7 +99,7 @@ public class Grafo {
         reset();
         Vertice v = this.verticeMap.get(id);
         v.setVisitadoTrue();
-        int i = 1;
+        int c = 1;
         Queue<Vertice> fila = new LinkedList<>();
         fila.add(v);
         while (!fila.isEmpty()) {
@@ -111,14 +110,51 @@ public class Grafo {
                     fila.add(vizinho);
                     // System.out.printf("Vértice %d visitado\n", vizinho.getId());
                     vizinho.setVisitadoTrue();
-                    i += 1;
+                    c += 1;
                 }
             }
         }
-        return i;
+        return c;
     }
 
-    public void abrirTexto(String arquivo) { // parser de arquivos para grafo
+    /**
+     * Dados dois inteiros origem e destino, calcula a quantidade
+     * de vértices entre eles
+     *
+     * @param origem: ID do vértice de origem
+     * @param destino: ID do vértice de destino
+     * @return: quantidade de vértices de origem para destino (inclusive)
+     */
+    public int BFS(int origem, int destino) {
+        reset();
+        Vertice v1 = this.verticeMap.get(origem);
+        List<Integer> caminho = new ArrayList<>();
+        caminho.add(origem);
+        v1.setVisitadoTrue();
+        Queue<List<Integer>> fila = new LinkedList<>();
+        fila.offer(caminho);
+
+        while (!fila.isEmpty()) {
+            caminho = fila.poll();
+            int ultimo = caminho.get(caminho.size() - 1);
+            if (ultimo == destino) {
+                return caminho.size();
+            }
+
+            Vertice ultimoVertice = this.verticeMap.get(ultimo);
+            for (Vertice v : ultimoVertice.getVizinhanca().values()) {
+                if (!v.isVisitado()) {
+                    List<Integer> novoCaminho = new ArrayList<>(caminho);
+                    novoCaminho.add(v.getId());
+                    fila.offer(novoCaminho);
+                    v.setVisitadoTrue();
+                }
+            }
+        }
+        return caminho.size();
+    }
+
+    public void abrirTexto(String arquivo) {
         String linha = null;
         String pedacos[];
 
@@ -130,20 +166,21 @@ public class Grafo {
                 linha = linha.replaceAll("\\s + ", " ");
                 pedacos = linha.split(" ");
                 int v1 = Integer.parseInt(pedacos[0]);
-                if (this.verticeMap.get(v1) == null) // evitar aviso desnecessário de vértice ja existente
-                    this.adicionarVertice(v1);
+
+                if (this.verticeMap.get(v1) == null) // evitar aviso desnecessário de vértice já existente
+                    adicionarVertice(v1);
+
                 for (int i = 2 ; i < pedacos.length ; i++) {
                     int v2 = Integer.parseInt(pedacos[i]);
-                    // pode ser a primeira ocorrência do v2
-                    if (this.verticeMap.get(v2) == null) // evitar aviso desnecesáario de vértice ja existente
-                        this.adicionarVertice(v2);
-                    this.adicionarAresta(v1, v2);
+                    // pode ser a primeira ocorrência de v2
+                    if (this.verticeMap.get(v2) == null)
+                        adicionarVertice(v2);
+                    adicionarAresta(v1, v2);
                 }
             }
-            System.out.print("\nArquivo lido com sucesso.");
         }
-        catch(Exception e) {
-            e.printStackTrace();
+        catch(Exception exception) {
+            exception.printStackTrace();
         }
     }
 
@@ -152,16 +189,16 @@ public class Grafo {
      * subgrafos de tamanho 5 de g
      * Complexidade: O(n^5)
      *
-     * @return lista com todos os subgrafos de tamanho 5 de g
+     * @return: lista com todos os subgrafos de tamanho 5 de g
      */
-    public List<Grafo> subgrafosPossiveis() {
+    public List<Grafo> gerarSubgrafos() {
         List<Grafo> subgrafos = new ArrayList<>();
         for (Vertice v1 : this.verticeMap.values()) {
             for (Vertice v2 : this.verticeMap.values()) {
                 for (Vertice v3 : this.verticeMap.values()) {
                     for (Vertice v4 : this.verticeMap.values()) {
                         for (Vertice v5 : this.verticeMap.values()) {
-                            // Verifica se os vértices são todos diferentes entre si
+                            // Verifica se os vértices são todos diferentes entre si, evitando repetição de {v1, v2} e {v2, v1}
                             if (v1.getId() < v2.getId() && v1.getId() < v3.getId() && v1.getId() < v4.getId() &&
                                     v1.getId() < v5.getId() && v2.getId() < v3.getId() && v2.getId() < v4.getId() &&
                                     v2.getId() < v5.getId() && v3.getId() < v4.getId() && v3.getId() < v5.getId() && v4.getId() < v5.getId()) {
@@ -204,75 +241,29 @@ public class Grafo {
         return subgrafos;
     }
 
+    /**
+     * Um grafo é P4-Esparso se para todos os subgrafos de 5 vértices existe
+     * no máximo um P4 induzido
+     *
+     * @return: true caso seja P4-Esparso ou false caso contrário
+     */
     public boolean isP4Esparso() {
-        if (this.verticeMap.size() <= 4)
+        if (this.verticeMap.size() <= 4) // qualquer grafo com menos de 4 vértices é P4-Esparso
             return true;
 
-        List<Grafo> subgrafos = subgrafosPossiveis();
+        List<Grafo> subgrafos = gerarSubgrafos();
         for (Grafo g : subgrafos) {
-            int controle = 0;
             for (Vertice v1 : g.verticeMap.values()) {
-                // verificar se o BFS de v é >= 4
-                // se sim, controle += 1
-                // se controle > 1, return false
+                int controle = 0;
                 for (Vertice v2 : g.verticeMap.values()) {
-                    if (BFS(v1.getId()) >= 4)
-                        controle += 1;
-                    if (controle > 1)
-                        return false;
+                    if (v1.getId() < v2.getId()) { // evita repetição {v1, v2} e {v2, v1}
+                        if (BFS(v1.getId(), v2.getId()) >= 4)
+                            controle += 1;
+                        if (controle > 1)
+                            return false;
+                    }
                 }
             }
         }
         return true;
     }
-
-
-    public static void main(String[] args) {
-        Grafo grafo = new Grafo();
-        //List<Grafo> listaSubgrafos = new ArrayList<>();
-
-        /*
-        grafo.adicionarVertice(1);
-        grafo.adicionarVertice(2);
-        grafo.adicionarVertice(3);
-        grafo.adicionarVertice(4);
-        grafo.adicionarVertice(5);
-        grafo.adicionarVertice(6);
-
-        grafo.adicionarAresta(1, 5);
-        grafo.adicionarAresta(2, 3);
-        grafo.adicionarAresta(4, 5);
-        grafo.adicionarAresta(4, 6);
-        grafo.adicionarAresta(5, 6); */
-
-        grafo.adicionarVertice(1);
-        grafo.adicionarVertice(2);
-        grafo.adicionarVertice(3);
-        grafo.adicionarVertice(4);
-        grafo.adicionarVertice(5);
-
-        grafo.adicionarAresta(1, 5);
-        grafo.adicionarAresta(2, 5);
-        grafo.adicionarAresta(3, 5);
-        grafo.adicionarAresta(4, 5);
-
-        List<Grafo> listaSubgrafos = grafo.subgrafosPossiveis();
-        for (Grafo g : listaSubgrafos) {
-            g.imprimirGrafo();
-            System.out.print("\n-------------\n\n");
-        }
-
-        System.out.print("\n=====================================================\n\n");
-        grafo.imprimirGrafo();
-        System.out.println();
-
-        grafo.reset();
-
-        System.out.println(grafo.isP4Esparso());
-
-        for (Grafo g : listaSubgrafos) {
-            for (Vertice v : g.verticeMap.values())
-                System.out.println(grafo.BFS(v.getId()));
-        }
-    }
-}
